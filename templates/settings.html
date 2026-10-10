@@ -1,0 +1,806 @@
+{% extends "base.html" %}
+
+{% block title %}
+Timetable Settings | SmartClass
+{% endblock %}
+
+{% block content %}
+
+<style>
+.break-settings-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; align-items:end; }
+.period-help { display:block; margin-top:12px; line-height:1.6; color:var(--text-muted, #666); }
+#periodTimesContainer .grid { display:grid; grid-template-columns:minmax(100px,.7fr) repeat(2,minmax(150px,1fr)); gap:18px; }
+#periodTimesContainer input, .break-settings-grid input, .break-settings-grid select { width:100%; min-width:0; box-sizing:border-box; }
+@media(max-width:700px) { .break-settings-grid { grid-template-columns:1fr; gap:10px; } #periodTimesContainer .grid { grid-template-columns:1fr 1fr; gap:10px; } #periodTimesContainer .grid .form-group:first-child { grid-column:1 / -1; } }
+</style>
+
+
+
+<div class="page-container">
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-hero">
+
+        <div class="page-step">
+            STEP 05
+        </div>
+
+        <h1>
+            Timetable Settings
+        </h1>
+
+        <p>
+            Configure working days, periods and timetable timings.
+        </p>
+
+    </div>
+
+
+    <!-- SETTINGS FORM -->
+
+    <form method="POST">
+
+        <div class="grid grid-2">
+
+            <!-- WORKING DAYS -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-icon">
+                            📅
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Working Days
+                            </h2>
+
+                            <p>
+                                Select the days for your timetable.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="day-list">
+
+                    <!-- MONDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Monday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Monday"
+                            {% if "Monday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+
+                    <!-- TUESDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Tuesday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Tuesday"
+                            {% if "Tuesday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+
+                    <!-- WEDNESDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Wednesday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Wednesday"
+                            {% if "Wednesday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+
+                    <!-- THURSDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Thursday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Thursday"
+                            {% if "Thursday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+
+                    <!-- FRIDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Friday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Friday"
+                            {% if "Friday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+
+                    <!-- SATURDAY -->
+
+                    <label class="day-option">
+
+                        <span>
+                            Saturday
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            name="days"
+                            value="Saturday"
+                            {% if "Saturday" in selected_days %}checked{% endif %}
+                        >
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- PERIODS -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-icon">
+                            ⏰
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Periods Per Day
+                            </h2>
+
+                            <p>
+                                Set the total number of periods per working day.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="periods_per_day">
+                        Number of Periods
+                    </label>
+
+                    <input
+                        type="number"
+                        id="periods_per_day"
+                        name="periods_per_day"
+                        min="1"
+                        max="12"
+                        value="{{ periods_per_day or 6 }}"
+                        required
+                    >
+
+                    <small>
+                        Example: 6 periods per working day.
+                    </small>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <strong>💡 Tip</strong>
+
+                    <br>
+
+                    Choose enough periods to fit all theory and
+                    practical lectures during the week.
+
+                </div>
+
+            </div>
+
+
+            <!-- TIME RANGE -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-icon">
+                            🕘
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Time Range
+                            </h2>
+
+                            <p>
+                                Set the starting and ending time.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid grid-2">
+
+                    <div class="form-group">
+
+                        <label for="start_time">
+                            Start Time
+                        </label>
+
+                        <input
+                            type="time"
+                            id="start_time"
+                            name="start_time"
+                            value="{{ start_time or '09:30' }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="end_time">
+                            End Time
+                        </label>
+
+                        <input
+                            type="time"
+                            id="end_time"
+                            name="end_time"
+                            value="{{ end_time or '16:30' }}"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PERIOD TIMES -->
+
+            <div class="card" style="grid-column: 1 / -1;">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-icon">
+                            🕐
+                        </div>
+
+                        <div>
+                            <h2>Period Timings</h2>
+                            <p>Set the start and end time for each period.</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div id="periodTimesContainer"></div>
+
+                <small class="period-help">
+                    Set each period's start and end time. The timings are saved and shown in the generated timetable.
+                </small>
+
+            </div>
+
+            <!-- BREAK SETTINGS -->
+            <div class="card break-settings-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">☕</div>
+                        <div>
+                            <h2>Break Time</h2>
+                            <p>Choose where the break appears and set its duration.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="break-settings-grid">
+                    <div class="form-group">
+                        <label for="break_after_period">Break After</label>
+                        <select id="break_after_period" name="break_after_period" required>
+                            {% for p in range(1, (periods_per_day or 6)) %}
+                            <option value="{{ p }}" {% if (break_after_period or 4)|int == p %}selected{% endif %}>After Period {{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="break_start">Break Start</label>
+                        <input type="time" id="break_start" name="break_start" value="{{ break_start or '14:20' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="break_end">Break End</label>
+                        <input type="time" id="break_end" name="break_end" value="{{ break_end or '14:50' }}" required>
+                    </div>
+                </div>
+                <small class="period-help">The break will appear as a separate row in the timetable. Keep its time between the selected period and the next period.</small>
+            </div>
+
+            <!-- SCHEDULE SUMMARY -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-icon">
+                            📋
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Schedule Summary
+                            </h2>
+
+                            <p>
+                                Review your timetable configuration.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Selected Days
+                    </div>
+
+                    <div class="summary-value">
+                        <span id="selectedDaysCount">
+                            {{ selected_days|length }}
+                        </span>
+                        Days
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card" style="margin-top: 12px;">
+
+                    <div class="summary-label">
+                        Periods Per Day
+                    </div>
+
+                    <div class="summary-value">
+                        <span id="periodCount">
+                            {{ periods_per_day or 6 }}
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="card">
+
+            <div class="button-row form-navigation">
+
+                <a
+                    href="{{ url_for('availability') }}"
+                    class="btn btn-secondary"
+                >
+
+                    ← Back
+
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+
+                     Save &amp; Continue →
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   UPDATE SETTINGS SUMMARY
+===================================================== */
+
+const dayCheckboxes =
+    document.querySelectorAll(
+        'input[name="days"]'
+    );
+
+const selectedDaysCount =
+    document.getElementById(
+        "selectedDaysCount"
+    );
+
+const periodsInput =
+    document.getElementById(
+        "periods_per_day"
+    );
+
+const periodCount =
+    document.getElementById(
+        "periodCount"
+    );
+
+
+function updateSummary() {
+
+    let selected =
+        document.querySelectorAll(
+            'input[name="days"]:checked'
+        ).length;
+
+    selectedDaysCount.textContent =
+        selected;
+
+    periodCount.textContent =
+        periodsInput.value || 0;
+}
+
+
+/* Update when day is selected */
+
+dayCheckboxes.forEach(
+    function(checkbox) {
+
+        checkbox.addEventListener(
+            "change",
+            updateSummary
+        );
+
+    }
+);
+
+
+/* Update when periods change */
+
+periodsInput.addEventListener(
+    "input",
+    updateSummary
+);
+
+
+/* =====================================================
+   PERIOD TIMINGS
+===================================================== */
+
+const periodTimesContainer =
+    document.getElementById("periodTimesContainer");
+
+const savedPeriodTimes =
+    {{ period_times|default({})|tojson }};
+
+
+function minutesToTime(total) {
+
+    total = Math.max(0, Math.min(1439, total));
+
+    const hours = Math.floor(total / 60);
+    const minutes = total % 60;
+
+    return String(hours).padStart(2, "0") +
+        ":" +
+        String(minutes).padStart(2, "0");
+}
+
+
+function timeToMinutes(value) {
+
+    if (!value) return null;
+
+    const parts = value.split(":");
+
+    if (parts.length !== 2) return null;
+
+    return (
+        parseInt(parts[0], 10) * 60 +
+        parseInt(parts[1], 10)
+    );
+}
+
+
+function defaultPeriodTimes(count) {
+
+    const start =
+        timeToMinutes(
+            document.getElementById("start_time").value
+        ) ?? 570;
+
+    const end =
+        timeToMinutes(
+            document.getElementById("end_time").value
+        ) ?? (start + count * 60);
+
+    const total =
+        Math.max(count, end - start);
+
+    const result = {};
+
+    for (let p = 1; p <= count; p++) {
+
+        result[p] = {
+            start: minutesToTime(
+                start +
+                Math.round(
+                    total * (p - 1) / count
+                )
+            ),
+            end: minutesToTime(
+                start +
+                Math.round(
+                    total * p / count
+                )
+            )
+        };
+
+    }
+
+    return result;
+}
+
+
+function renderPeriodTimes() {
+
+    const count =
+        Math.max(
+            1,
+            Math.min(
+                12,
+                parseInt(periodsInput.value, 10) || 1
+            )
+        );
+
+    const current = {};
+
+    for (let p = 1; p <= 12; p++) {
+
+        const startInput =
+            document.getElementById(
+                "period_" + p + "_start"
+            );
+
+        const endInput =
+            document.getElementById(
+                "period_" + p + "_end"
+            );
+
+        if (startInput && endInput) {
+
+            current[p] = {
+                start: startInput.value,
+                end: endInput.value
+            };
+
+        }
+
+    }
+
+    const defaults =
+        defaultPeriodTimes(count);
+
+    let html = "";
+
+    for (let p = 1; p <= count; p++) {
+
+        const saved =
+            current[p] ||
+            savedPeriodTimes[String(p)] ||
+            savedPeriodTimes[p] ||
+            defaults[p];
+
+        html += `
+            <div class="grid grid-3" style="margin-bottom: 12px; align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Period ${p}</label>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="period_${p}_start">Start Time</label>
+                    <input
+                        type="time"
+                        id="period_${p}_start"
+                        name="period_${p}_start"
+                        value="${saved.start || defaults[p].start}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="period_${p}_end">End Time</label>
+                    <input
+                        type="time"
+                        id="period_${p}_end"
+                        name="period_${p}_end"
+                        value="${saved.end || defaults[p].end}"
+                        required
+                    >
+                </div>
+            </div>
+        `;
+    }
+
+    periodTimesContainer.innerHTML = html;
+}
+
+
+periodsInput.addEventListener(
+    "input",
+    renderPeriodTimes
+);
+
+document.getElementById("start_time").addEventListener(
+    "change",
+    function() {
+        if (!Object.keys(savedPeriodTimes).length) {
+            renderPeriodTimes();
+        }
+    }
+);
+
+document.getElementById("end_time").addEventListener(
+    "change",
+    function() {
+        if (!Object.keys(savedPeriodTimes).length) {
+            renderPeriodTimes();
+        }
+    }
+);
+
+renderPeriodTimes();
+
+const breakAfterSelect = document.getElementById("break_after_period");
+function updateBreakOptions() {
+    const count = Math.max(1, Math.min(12, parseInt(periodsInput.value, 10) || 1));
+    const previous = breakAfterSelect.value;
+    let html = "";
+    for (let p = 1; p < count; p++) html += `<option value="${p}">After Period ${p}</option>`;
+    breakAfterSelect.innerHTML = html;
+    if (count > 1) breakAfterSelect.value = String(Math.min(parseInt(previous || "4", 10), count - 1));
+}
+periodsInput.addEventListener("input", updateBreakOptions);
+updateBreakOptions();
+
+/* =====================================================
+   FORM VALIDATION
+===================================================== */
+
+document
+    .querySelector("form")
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            const selectedDays =
+                document.querySelectorAll(
+                    'input[name="days"]:checked'
+                ).length;
+
+
+            if (selectedDays === 0) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please select at least one working day."
+                );
+
+                return;
+            }
+
+
+            const startTime =
+                document.getElementById(
+                    "start_time"
+                ).value;
+
+
+            const endTime =
+                document.getElementById(
+                    "end_time"
+                ).value;
+
+
+            if (
+                startTime &&
+                endTime &&
+                startTime >= endTime
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "End time must be later than start time."
+                );
+
+            }
+
+        }
+    );
+
+</script>
+
+{% endblock %}

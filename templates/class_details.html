@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+
+{% block title %}Class Details | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-hero">
+        <div class="page-step">STEP 02</div>
+        <h1>Class Information</h1>
+        <p>Add your classes and their divisions for this timetable.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('class_details') }}" id="classForm">
+
+        <div id="classesContainer">
+
+            {% if classes %}
+
+                {% for class_data in classes %}
+                    {% set class_index = loop.index0 %}
+
+                    <div class="card class-card">
+
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon">🎓</div>
+                                <div>
+                                    <h2 class="class-number">Class {{ loop.index }}</h2>
+                                    <p>Enter the course name and its divisions.</p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-small"
+                                onclick="deleteClass(this)"
+                            >
+                                🗑 Delete Class
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Class / Course Name</label>
+                            <input
+                                type="text"
+                                name="class_name[]"
+                                class="class-name-input"
+                                value="{{ class_data.class_name }}"
+                                placeholder="Example: FY BScIT"
+                                required
+                            >
+                        </div>
+
+                        <div class="division-heading">
+                            <div>
+                                <label>Divisions</label>
+                                <p class="form-help">
+                                    Add every division for this class.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="add-btn"
+                                onclick="addDivision(this)"
+                            >
+                                + Add Division
+                            </button>
+                        </div>
+
+                        <div class="division-container">
+                            {% for division in class_data.divisions %}
+                                <div class="division-row">
+                                    <div class="division-number">{{ loop.index }}</div>
+
+                                    <input
+                                        type="text"
+                                        name="division_{{ class_index }}[]"
+                                        class="division-input"
+                                        value="{{ division }}"
+                                        placeholder="Example: A"
+                                        required
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="remove-btn"
+                                        onclick="deleteDivision(this)"
+                                    >
+                                        ✕ Remove
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                {% endfor %}
+
+            {% else %}
+
+                <div class="card class-card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🎓</div>
+                            <div>
+                                <h2 class="class-number">Class 1</h2>
+                                <p>Enter the course name and its divisions.</p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-small"
+                            onclick="deleteClass(this)"
+                        >
+                            🗑 Delete Class
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Class / Course Name</label>
+                        <input
+                            type="text"
+                            name="class_name[]"
+                            class="class-name-input"
+                            placeholder="Example: FY BScIT"
+                            required
+                        >
+                    </div>
+
+                    <div class="division-heading">
+                        <div>
+                            <label>Divisions</label>
+                            <p class="form-help">
+                                Add every division for this class.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="add-btn"
+                            onclick="addDivision(this)"
+                        >
+                            + Add Division
+                        </button>
+                    </div>
+
+                    <div class="division-container">
+                        <div class="division-row">
+                            <div class="division-number">1</div>
+
+                            <input
+                                type="text"
+                                name="division_0[]"
+                                class="division-input"
+                                placeholder="Example: A"
+                                value="A"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="remove-btn"
+                                onclick="deleteDivision(this)"
+                            >
+                                ✕ Remove
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <button
+            type="button"
+            class="card add-class-card"
+            onclick="addClass()"
+        >
+            <span class="add-class-plus">＋</span>
+            <span>
+                <strong>Add Another Class</strong>
+                <small>Add FY, SY, TY, BCom, 12th Science, etc.</small>
+            </span>
+        </button>
+
+        <div class="card">
+            <div class="button-row form-navigation">
+                <a
+                    href="{{ url_for('create_project') }}"
+                    class="btn btn-secondary"
+                >
+                    ← Back
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Save &amp; Continue →
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     DELETE CLASS POPUP
+========================================================= -->
+
+<div
+    class="popup-overlay"
+    id="deleteClassPopup"
+    role="dialog"
+    aria-modal="true"
+>
+    <div class="popup">
+
+        <div class="popup-head">
+            <div class="card-icon" style="background:#fff0f2;color:#d83d50;">
+                🗑️
+            </div>
+
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closeDeleteClassPopup()"
+            >
+                ×
+            </button>
+        </div>
+
+        <h2 style="margin-top:18px;">Delete Class?</h2>
+
+        <p>
+            Are you sure you want to delete
+            <strong id="deleteClassName">this class</strong>?
+            Its divisions and class-specific subjects will need to be
+            entered again if you remove it.
+        </p>
+
+        <div class="button-row form-navigation">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeDeleteClassPopup()"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-danger"
+                onclick="confirmDeleteClass()"
+            >
+                Yes, Delete
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================================================
+     LAST CLASS WARNING
+========================================================= -->
+
+<div
+    class="popup-overlay"
+    id="lastClassPopup"
+    role="dialog"
+    aria-modal="true"
+>
+    <div class="popup">
+
+        <div class="popup-head">
+            <div class="card-icon" style="background:#fff8e7;color:#c18b16;">
+                ⚠️
+            </div>
+
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closeLastClassPopup()"
+            >
+                ×
+            </button>
+        </div>
+
+        <h2 style="margin-top:18px;">At least one class is required</h2>
+
+        <p>
+            SmartClass needs at least one class / course to generate a timetable.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-primary"
+            style="width:100%;"
+            onclick="closeLastClassPopup()"
+        >
+            OK
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+
+let classPendingDelete = null;
+
+function addClass() {
+    const container = document.getElementById("classesContainer");
+    const index = container.querySelectorAll(".class-card").length;
+
+    const card = document.createElement("div");
+    card.className = "card class-card";
+
+    card.innerHTML = `
+        <div class="card-header">
+            <div class="card-title">
+                <div class="card-icon">🎓</div>
+                <div>
+                    <h2 class="class-number">Class ${index + 1}</h2>
+                    <p>Enter the course name and its divisions.</p>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-danger btn-small"
+                onclick="deleteClass(this)"
+            >
+                🗑 Delete Class
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label>Class / Course Name</label>
+            <input
+                type="text"
+                name="class_name[]"
+                class="class-name-input"
+                placeholder="Example: FY BScIT"
+                required
+            >
+        </div>
+
+        <div class="division-heading">
+            <div>
+                <label>Divisions</label>
+                <p class="form-help">Add every division for this class.</p>
+            </div>
+
+            <button
+                type="button"
+                class="add-btn"
+                onclick="addDivision(this)"
+            >
+                + Add Division
+            </button>
+        </div>
+
+        <div class="division-container">
+            <div class="division-row">
+                <div class="division-number">1</div>
+
+                <input
+                    type="text"
+                    name="division_${index}[]"
+                    class="division-input"
+                    placeholder="Example: A"
+                    value="A"
+                    required
+                >
+
+                <button
+                    type="button"
+                    class="remove-btn"
+                    onclick="deleteDivision(this)"
+                >
+                    ✕ Remove
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(card);
+    updateClassIndexes();
+
+    const input = card.querySelector(".class-name-input");
+    if (input) input.focus();
+
+    card.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+
+function deleteClass(button) {
+    const cards = document.querySelectorAll(".class-card");
+
+    if (cards.length <= 1) {
+        document.getElementById("lastClassPopup").classList.add("open");
+        return;
+    }
+
+    classPendingDelete = button.closest(".class-card");
+
+    const nameInput = classPendingDelete.querySelector(".class-name-input");
+    const name = nameInput ? nameInput.value.trim() : "";
+
+    document.getElementById("deleteClassName").textContent =
+        name || "this class";
+
+    document.getElementById("deleteClassPopup").classList.add("open");
+}
+
+function confirmDeleteClass() {
+    if (!classPendingDelete) return;
+
+    classPendingDelete.remove();
+    classPendingDelete = null;
+
+    closeDeleteClassPopup();
+    updateClassIndexes();
+}
+
+function closeDeleteClassPopup() {
+    document.getElementById("deleteClassPopup").classList.remove("open");
+    classPendingDelete = null;
+}
+
+function closeLastClassPopup() {
+    document.getElementById("lastClassPopup").classList.remove("open");
+}
+
+function addDivision(button) {
+    const card = button.closest(".class-card");
+    const container = card.querySelector(".division-container");
+
+    const row = document.createElement("div");
+    row.className = "division-row";
+
+    row.innerHTML = `
+        <div class="division-number">1</div>
+
+        <input
+            type="text"
+            class="division-input"
+            placeholder="Example: B"
+            required
+        >
+
+        <button
+            type="button"
+            class="remove-btn"
+            onclick="deleteDivision(this)"
+        >
+            ✕ Remove
+        </button>
+    `;
+
+    container.appendChild(row);
+
+    updateClassIndexes();
+
+    row.querySelector(".division-input").focus();
+}
+
+function deleteDivision(button) {
+    const card = button.closest(".class-card");
+    const container = card.querySelector(".division-container");
+    const rows = container.querySelectorAll(".division-row");
+
+    if (rows.length <= 1) {
+        openPopup(
+            "Division Required",
+            "A class must have at least one division.",
+            `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+        );
+        return;
+    }
+
+    button.closest(".division-row").remove();
+    updateClassIndexes();
+}
+
+function updateClassIndexes() {
+    const cards = document.querySelectorAll(".class-card");
+
+    cards.forEach((card, classIndex) => {
+        const number = card.querySelector(".class-number");
+        if (number) number.textContent = `Class ${classIndex + 1}`;
+
+        const inputs = card.querySelectorAll(".division-input");
+
+        inputs.forEach((input, divisionIndex) => {
+            input.name = `division_${classIndex}[]`;
+
+            const numberBox = input
+                .closest(".division-row")
+                .querySelector(".division-number");
+
+            if (numberBox) {
+                numberBox.textContent = divisionIndex + 1;
+            }
+        });
+    });
+}
+
+document.getElementById("classForm").addEventListener("submit", function(event) {
+    updateClassIndexes();
+
+    const cards = document.querySelectorAll(".class-card");
+
+    if (!cards.length) {
+        event.preventDefault();
+        document.getElementById("lastClassPopup").classList.add("open");
+        return;
+    }
+
+    const names = new Set();
+
+    for (const card of cards) {
+        const classInput = card.querySelector(".class-name-input");
+        const className = classInput.value.trim();
+
+        if (!className) {
+            event.preventDefault();
+            classInput.focus();
+
+            openPopup(
+                "Class Name Required",
+                "Please enter a class / course name.",
+                `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+            );
+            return;
+        }
+
+        const classKey = className.toLowerCase();
+
+        if (names.has(classKey)) {
+            event.preventDefault();
+
+            openPopup(
+                "Duplicate Class",
+                "Each class / course name must be unique.",
+                `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+            );
+            return;
+        }
+
+        names.add(classKey);
+
+        const divisionInputs = card.querySelectorAll(".division-input");
+
+        if (!divisionInputs.length) {
+            event.preventDefault();
+
+            openPopup(
+                "Division Required",
+                `Please add at least one division for ${className}.`,
+                `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+            );
+            return;
+        }
+
+        const divisions = new Set();
+
+        for (const input of divisionInputs) {
+            const value = input.value.trim();
+
+            if (!value) {
+                event.preventDefault();
+                input.focus();
+
+                openPopup(
+                    "Division Name Required",
+                    `Please enter all division names for ${className}.`,
+                    `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+                );
+                return;
+            }
+
+            const key = value.toLowerCase();
+
+            if (divisions.has(key)) {
+                event.preventDefault();
+
+                openPopup(
+                    "Duplicate Division",
+                    `Division names must be unique inside ${className}.`,
+                    `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+                );
+                return;
+            }
+
+            divisions.add(key);
+        }
+    }
+});
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        closeDeleteClassPopup();
+        closeLastClassPopup();
+    }
+});
+
+</script>
+
+{% endblock %}

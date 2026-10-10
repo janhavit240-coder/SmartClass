@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SmartClass{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SC</div>
+    <div class="brand-text"><h2>SmartClass</h2><span>Smart Timetable Studio</span></div>
+  </div>
+  <div class="menu-title">WORKSPACE</div>
+  <ul class="sidebar-menu">
+    <li><a href="{{ url_for('dashboard') }}"><span class="icon">⌂</span>Dashboard</a></li>
+    <li><a href="{{ url_for('create_project') }}"><span class="icon">＋</span>New Timetable</a></li>
+    <li><a href="{{ url_for('class_details') }}"><span class="icon">🎓</span>Class & Divisions</a></li>
+    <li><a href="{{ url_for('subjects') }}"><span class="icon">▦</span>Subjects</a></li>
+    <li><a href="{{ url_for('availability') }}"><span class="icon">◷</span>Teacher Availability</a></li>
+    <li><a href="{{ url_for('settings') }}"><span class="icon">⚙</span>Settings</a></li>
+    <li><a href="{{ url_for('generate') }}"><span class="icon">✦</span>Generate</a></li>
+    <li><a href="{{ url_for('timetable') }}"><span class="icon">▤</span>Timetable</a></li>
+    <li><a href="{{ url_for('saved_timetables') }}"><span class="icon">♡</span>Saved</a></li>
+  </ul>
+  <div class="sidebar-footer">Plan smarter. Schedule faster.<br>SmartClass © 2026</div>
+</aside>
+
+<main class="main-content">
+  <header class="top-header">
+    <div class="top-brand"><span>SmartClass</span> &nbsp;/&nbsp; Automatic Timetable Generator</div>
+    <div class="top-user">
+      <div class="user-avatar">{{ (session.get('user_name','Administrator')[:1] or 'A')|upper }}</div>
+      <div><div class="user-name">{{ session.get('user_name','Administrator') }}</div><div class="user-role">SmartClass User</div></div>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </header>
+  <div class="page-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+  <div class="page-footer">SmartClass • Academic Timetable Management</div>
+</main>
+</div>
+<div id="popupOverlay" class="popup-overlay" onclick="closePopup(event)">
+  <div class="popup" onclick="event.stopPropagation()">
+    <div class="popup-head"><div><h2 id="popupTitle">SmartClass</h2><p id="popupText">Ready to help you plan.</p></div><button class="popup-close" onclick="closePopup()">×</button></div>
+    <div id="popupBody"></div>
+  </div>
+</div>
+<script>
+function openPopup(title,text,body){
+ const o=document.getElementById('popupOverlay'); document.getElementById('popupTitle').textContent=title;
+ document.getElementById('popupText').textContent=text||''; document.getElementById('popupBody').innerHTML=body||'';
+ o.classList.add('open');
+}
+function closePopup(e){if(!e || e.target.id==='popupOverlay') document.getElementById('popupOverlay').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup()});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

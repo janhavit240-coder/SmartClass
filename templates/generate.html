@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Timetable | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-hero">
+        <div class="page-step">STEP 06</div>
+        <h1>Review &amp; Generate</h1>
+        <p>
+            Check your classes, subjects, teacher availability and timetable
+            settings before creating the final schedule.
+        </p>
+    </div>
+
+    <div class="grid grid-2">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">📁</div>
+                    <div>
+                        <h2>Project</h2>
+                        <p>Current SmartClass project</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-label">Project</span>
+                    <span class="detail-value">
+                        {{ project.get('project_name','-') }}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Academic Year</span>
+                    <span class="detail-value">
+                        {{ project.get('academic_year','-') or '-' }}
+                    </span>
+                </div>
+
+               
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">🎓</div>
+                    <div>
+                        <h2>Classes &amp; Divisions</h2>
+                        <p>All groups included in this timetable</p>
+                    </div>
+                </div>
+            </div>
+
+            {% for class_data in classes %}
+                <div class="summary-card" style="margin-bottom:10px;">
+                    <div class="summary-label">
+                        {{ class_data.class_name }}
+                    </div>
+                    <div style="margin-top:7px;">
+                        {% for division in class_data.divisions %}
+                            <span class="division-badge">
+                                {{ division }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <div class="card-icon">⚙️</div>
+                <div>
+                    <h2>Timetable Settings</h2>
+                    <p>Working days and period timing</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-4">
+
+            <div class="summary-card">
+                <div class="summary-label">📅 Working Days</div>
+                <div class="summary-value" style="font-size:16px;">
+                    {{ working_days|join(', ') }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">🕐 Periods / Day</div>
+                <div class="summary-value">
+                    {{ periods_per_day }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">⏰ Start</div>
+                <div class="summary-value">
+                    {{ start_time }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">⏰ End</div>
+                <div class="summary-value">
+                    {{ end_time }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card">
+
+        <div class="card-header">
+            <div class="card-title">
+                <div class="card-icon">📚</div>
+                <div>
+                    <h2>Subjects &amp; Teachers</h2>
+                    <p>Class-wise lecture requirements</p>
+                </div>
+            </div>
+
+            <span class="badge badge-blue">
+                {{ subjects|length }} Subjects
+            </span>
+        </div>
+
+        <div class="grid grid-3">
+
+            {% for subject in subjects %}
+
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        {{ subject.class_name }}
+                    </div>
+
+                    <div class="subject-name" style="margin-top:6px;">
+                        {{ subject.subject_name }}
+                    </div>
+
+                    <div class="teacher-name">
+                        👨‍🏫 {{ subject.teacher_name }}
+                    </div>
+
+                    <div class="saved-meta" style="margin-top:8px;">
+                        <span>Theory: {{ subject.theory }}</span>
+                        <span>Practical: {{ subject.practical }}</span>
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+       
+
+        <div class="button-row form-navigation">
+
+            <a
+                href="{{ url_for('settings') }}"
+                class="btn btn-secondary"
+            >
+                ← Edit Settings
+            </a>
+
+            <form
+            id="generateForm"
+                method="POST"
+                action="{{ url_for('generate') }}"
+                style="margin:0;"
+            >
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    ✨ Generate Timetable
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,905 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Saved' if saved_timetable else 'Generated' }} Timetable | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-hero">
+        <div class="page-step">STEP 07 • SMARTCLASS</div>
+        <h1>
+            {{ 'Saved' if saved_timetable else 'Generated' }} Timetable
+        </h1>
+        <p>
+            {{ project.get('project_name','SmartClass Timetable') }}
+            • {{ project.get('academic_year','') }}
+            • {{ project.get('semester','') }}
+        </p>
+    </div>
+
+    {% if timetable %}
+
+        <!-- =====================================================
+             ACTIONS
+        ====================================================== -->
+
+        <div class="card no-print">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <div class="card-icon">📅</div>
+
+                    <div>
+                        <h2>Timetable Actions</h2>
+                        <p>
+                            Save, share, generate again or print your final timetable.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="button-row">
+
+                {% if not saved_timetable %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('save_timetable') }}"
+                        style="margin:0;"
+                    >
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            💾 Save Timetable
+                        </button>
+                    </form>
+
+                {% endif %}
+
+
+                <a
+                    href="{{ url_for('generate') }}"
+                    class="btn btn-secondary"
+                >
+                    🔄 Generate Again
+                </a>
+
+
+                <!-- SHARE PDF -->
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    id="sharePdfBtn"
+                >
+                    📄 Share PDF
+                </button>
+
+
+                <!-- PRINT -->
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="window.print()"
+                >
+                    🖨️ Print
+                </button>
+
+                {% if saved_timetable %}
+
+                    <a
+                        href="{{ url_for('saved_timetables') }}"
+                        class="btn btn-secondary"
+                    >
+                        ← Back to Saved
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        {% set settings_info = settings if settings else {} %}
+        {% set days_list = settings_info.get('working_days', []) %}
+        {% set periods_count = settings_info.get('periods_per_day', 6) %}
+        {% set period_times = settings_info.get('period_times', {}) %}
+
+
+        <!-- =====================================================
+             SUMMARY
+        ====================================================== -->
+
+        <div class="grid grid-4 no-print timetable-summary">
+
+            <div class="summary-card">
+                <div class="summary-label">🎓 Classes</div>
+                <div class="summary-value">
+                    {{ classes|length }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">👥 Divisions</div>
+                <div class="summary-value">
+                    {{ class_details.get('all_divisions', [])|length }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">📅 Working Days</div>
+                <div class="summary-value">
+                    {{ days_list|length }}
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-label">🕐 Periods / Day</div>
+                <div class="summary-value">
+                    {{ periods_count }}
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             PDF CONTENT
+        ====================================================== -->
+
+        <div id="pdfContent">
+
+
+            <!-- PDF TITLE -->
+
+            <div class="pdf-title">
+
+                <h1>
+                    {{ project.get('project_name','SmartClass Timetable') }}
+                </h1>
+
+                <p>
+                    {{ project.get('academic_year','') }}
+                    •
+                    {{ project.get('semester','') }}
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 GROUP TIMETABLE BY CLASS
+            ================================================== -->
+
+            {% set class_ns = namespace(names=[]) %}
+
+            {% for entry in timetable %}
+
+                {% set class_name = entry.get('class_name','') or 'Class' %}
+
+                {% if class_name not in class_ns.names %}
+
+                    {% set class_ns.names =
+                        class_ns.names + [class_name]
+                    %}
+
+                {% endif %}
+
+            {% endfor %}
+
+
+            {% for class_name in class_ns.names %}
+
+                <div class="card timetable-class-card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+
+                            <div class="card-icon">🎓</div>
+
+                            <div>
+
+                                <h2>{{ class_name }}</h2>
+
+                                <p>
+                                    Class timetable by division
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <span class="badge badge-blue">
+                            {{ days_list|length }} Days
+                        </span>
+
+                    </div>
+
+                    {% set division_ns = namespace(names=[]) %}
+
+
+                    {% for entry in timetable %}
+
+                        {% if entry.get('class_name','') == class_name %}
+
+                            {% set div_name =
+                                entry.get('division_name','') %}
+
+                            {% if div_name and div_name not in division_ns.names %}
+
+                                {% set division_ns.names =
+                                    division_ns.names + [div_name] %}
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% for division_name in division_ns.names %}
+
+                        <div class="division-result-block">
+
+                            <div class="division-result-title">
+
+                                <span>
+                                    Division {{ division_name }}
+                                </span>
+
+                                <span class="badge badge-green">
+                                    {{ class_name }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="timetable-wrapper">
+
+                                <table class="timetable">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>Period</th>
+
+                                            {% for day in days_list %}
+
+                                                <th>
+                                                    {{ day }}
+                                                </th>
+
+                                            {% endfor %}
+
+                                        </tr>
+
+                                    </thead>
+
+
+                                    <tbody>
+
+                                        {% for period in range(1, periods_count + 1) %}
+
+                                            <tr>
+
+                                                <td>
+                                                    <strong>
+                                                        Period {{ period }}
+                                                    </strong>
+
+                                                    {% set pt = period_times.get(period|string, period_times.get(period, {})) %}
+
+                                                    {% if pt %}
+                                                        <small style="display:block; margin-top:4px;">
+                                                            {{ pt.get('start','') }} - {{ pt.get('end','') }}
+                                                        </small>
+                                                    {% endif %}
+                                                </td>
+
+
+                                                {% for day in days_list %}
+
+                                                    {% set cell_ns =
+                                                        namespace(found=None) %}
+
+
+                                                    {% for entry in timetable %}
+
+                                                        {% if
+                                                            entry.get('class_name','') == class_name
+                                                            and entry.get('division_name','') == division_name
+                                                            and entry.get('day') == day
+                                                            and entry.get('period') == period
+                                                        %}
+
+                                                            {% set cell_ns.found = entry %}
+
+                                                        {% endif %}
+
+                                                    {% endfor %}
+
+
+                                                    <td>
+
+                                                        {% if cell_ns.found %}
+
+
+                                                            {% if cell_ns.found.subject_name == 'Free' %}
+
+                                                                <div class="lecture free-lecture">
+
+                                                                    <strong>
+                                                                        Free
+                                                                    </strong>
+
+                                                                    <span>
+                                                                        No lecture
+                                                                    </span>
+
+                                                                </div>
+
+
+                                                            {% else %}
+
+                                                                <div class="lecture">
+
+                                                                    <strong>
+                                                                        {{ cell_ns.found.subject_name }}
+                                                                    </strong>
+
+                                                                    <span>
+                                                                        👨‍🏫
+                                                                        {{ cell_ns.found.teacher_name }}
+                                                                    </span>
+
+
+                                                                    {% if
+                                                                        cell_ns.found.lecture_type == 'Practical'
+                                                                        or cell_ns.found.lecture_type == 'PRACTICAL'
+                                                                    %}
+
+                                                                        <span class="badge badge-green">
+                                                                            Practical
+                                                                        </span>
+
+                                                                    {% else %}
+
+                                                                        <span class="badge badge-blue">
+                                                                            Theory
+                                                                        </span>
+
+                                                                    {% endif %}
+
+                                                                </div>
+
+                                                            {% endif %}
+
+
+                                                        {% else %}
+
+                                                            <div class="lecture free-lecture">
+
+                                                                <strong>
+                                                                    Free
+                                                                </strong>
+
+                                                                <span>
+                                                                    No lecture
+                                                                </span>
+
+                                                            </div>
+
+                                                        {% endif %}
+
+                                                    </td>
+
+                                                {% endfor %}
+
+                                            </tr>
+
+                                            {% if settings_info.get('break_after_period', 4)|int == period %}
+                                            <tr class="timetable-break-row">
+                                                <td colspan="{{ (days_list|length) + 1 }}" style="text-align:center; background:#f3edff; color:#5633a8; font-weight:700; padding:10px; border-top:1px dashed #b9a4ed; border-bottom:1px dashed #b9a4ed;">
+                                                    ☕ BREAK &nbsp; {{ settings_info.get('break_start', '14:20') }} – {{ settings_info.get('break_end', '14:50') }}
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+
+                                        {% endfor %}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <div class="card">
+
+            <div class="empty-state">
+
+                <div
+                    class="card-icon"
+                    style="margin:auto;"
+                >
+                    📅
+                </div>
+
+                <h2>No Timetable Generated</h2>
+
+                <p>
+                    Generate a timetable first to see it here.
+                </p>
+
+                <a
+                    href="{{ url_for('generate') }}"
+                    class="btn btn-primary"
+                >
+                    Generate Timetable
+                </a>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+/* ============================================================
+   TIMETABLE SPACING
+============================================================ */
+
+.timetable-summary {
+    margin-bottom: 34px;
+}
+
+.timetable-class-card {
+    margin-top: 32px;
+}
+
+
+/* ============================================================
+   DIVISION HEADER
+============================================================ */
+
+.division-result-block {
+    margin-top: 22px;
+}
+
+.division-result-title {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:10px;
+
+    padding:12px 14px;
+
+    background:#f8f6ff;
+
+    border:1px solid #ebe7ff;
+
+    border-radius:14px;
+
+    font-weight:700;
+
+    font-size:13px;
+}
+
+
+/* ============================================================
+   FREE PERIOD
+============================================================ */
+
+.free-lecture {
+    background:#f6f6f8 !important;
+}
+
+
+/* ============================================================
+   PDF TITLE
+============================================================ */
+
+.pdf-title {
+
+    display:none;
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+}
+
+.pdf-title h1 {
+    margin:0 0 6px;
+}
+
+.pdf-title p {
+    margin:0;
+    color:#666;
+}
+
+
+/* ============================================================
+   PRINT
+============================================================ */
+
+@media print {
+
+    .no-print,
+    .sidebar,
+    .top-header,
+    .page-footer {
+        display:none !important;
+    }
+
+
+    .main-content {
+        margin:0 !important;
+        width:100% !important;
+    }
+
+
+    .page-container {
+        max-width:100% !important;
+        padding:0 !important;
+    }
+
+
+    .page-hero {
+        background:none !important;
+        color:#000 !important;
+        box-shadow:none !important;
+        padding:10px 0 !important;
+    }
+
+
+    .page-hero p {
+        color:#555 !important;
+    }
+
+
+    .card {
+        box-shadow:none !important;
+        border:1px solid #ddd !important;
+        page-break-inside:avoid;
+    }
+
+
+    .timetable {
+        min-width:0 !important;
+    }
+
+
+    .timetable th {
+        background:#292148 !important;
+        color:#fff !important;
+        print-color-adjust:exact;
+        -webkit-print-color-adjust:exact;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width:700px) {
+
+    .button-row {
+        flex-wrap:wrap;
+    }
+
+    .button-row .btn {
+        width:auto;
+    }
+
+    .timetable-class-card {
+        margin-top:24px;
+    }
+
+}
+
+</style>
+
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- PDF LIBRARIES -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const shareButton =
+        document.getElementById("sharePdfBtn");
+
+
+    if (!shareButton) {
+        return;
+    }
+
+
+    shareButton.addEventListener("click", async function () {
+
+        const originalText =
+            shareButton.innerHTML;
+
+
+        try {
+
+            shareButton.disabled = true;
+
+            shareButton.innerHTML =
+                "⏳ Creating PDF...";
+
+
+            const content =
+                document.getElementById("pdfContent");
+
+
+            if (!content) {
+                throw new Error(
+                    "Timetable content not found."
+                );
+            }
+
+
+            /*
+             * Temporarily show the PDF title.
+             */
+
+            const pdfTitle =
+                content.querySelector(".pdf-title");
+
+            if (pdfTitle) {
+                pdfTitle.style.display = "block";
+            }
+
+
+            const canvas =
+                await html2canvas(
+                    content,
+                    {
+                        scale: 1.5,
+                        useCORS: true,
+                        backgroundColor: "#ffffff"
+                    }
+                );
+
+
+            if (pdfTitle) {
+                pdfTitle.style.display = "none";
+            }
+
+
+            const {
+                jsPDF
+            } = window.jspdf;
+
+
+            const pdf =
+                new jsPDF(
+                    "l",
+                    "mm",
+                    "a4"
+                );
+
+
+            const pageWidth =
+                pdf.internal.pageSize.getWidth();
+
+            const pageHeight =
+                pdf.internal.pageSize.getHeight();
+
+
+            const margin = 8;
+
+            const usableWidth =
+                pageWidth - margin * 2;
+
+
+            const imageWidth =
+                usableWidth;
+
+            const imageHeight =
+                canvas.height *
+                imageWidth /
+                canvas.width;
+
+
+            let heightLeft =
+                imageHeight;
+
+            let position = margin;
+
+
+            pdf.addImage(
+                canvas.toDataURL("image/jpeg", 0.92),
+                "JPEG",
+                margin,
+                position,
+                imageWidth,
+                imageHeight
+            );
+
+
+            heightLeft -=
+                pageHeight -
+                margin * 2;
+
+
+            while (heightLeft > 0) {
+
+                position =
+                    margin -
+                    (
+                        imageHeight -
+                        heightLeft
+                    );
+
+                pdf.addPage();
+
+                pdf.addImage(
+                    canvas.toDataURL(
+                        "image/jpeg",
+                        0.92
+                    ),
+                    "JPEG",
+                    margin,
+                    position,
+                    imageWidth,
+                    imageHeight
+                );
+
+                heightLeft -=
+                    pageHeight -
+                    margin * 2;
+            }
+
+
+            const fileName =
+                "SmartClass_Timetable.pdf";
+
+
+            const pdfBlob =
+                pdf.output("blob");
+
+
+            const file =
+                new File(
+                    [pdfBlob],
+                    fileName,
+                    {
+                        type:"application/pdf"
+                    }
+                );
+
+
+            /*
+             * Mobile / supported browser:
+             * open native Share sheet.
+             */
+
+            if (
+                navigator.share &&
+                navigator.canShare &&
+                navigator.canShare({
+                    files:[file]
+                })
+            ) {
+
+                await navigator.share({
+
+                    title:
+                        "SmartClass Timetable",
+
+                    text:
+                        "SmartClass Generated Timetable",
+
+                    files:[file]
+
+                });
+
+            }
+
+            /*
+             * If file sharing is not supported,
+             * download the PDF instead.
+             */
+
+            else {
+
+                pdf.save(fileName);
+
+                alert(
+                    "PDF created successfully. It has been downloaded because PDF sharing is not supported by this browser."
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "PDF SHARE ERROR:",
+                error
+            );
+
+            /*
+             * User cancelled native share:
+             * don't show an error.
+             */
+
+            if (
+                error &&
+                error.name === "AbortError"
+            ) {
+
+                return;
+
+            }
+
+
+            alert(
+                "Unable to create PDF. Please try again."
+            );
+
+
+        } finally {
+
+            shareButton.disabled = false;
+
+            shareButton.innerHTML =
+                originalText;
+
+        }
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

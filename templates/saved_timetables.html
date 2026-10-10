@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Saved Timetables | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <section class="page-hero">
+        <div class="page-step">SMARTCLASS / YOUR LIBRARY</div>
+        <h1>Saved Timetables 📚</h1>
+        <p>
+            View, manage and access your previously generated academic
+            timetables in one place.
+        </p>
+    </section>
+
+    <section class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+                <div class="card-icon">📁</div>
+
+                <div>
+                    <h2>My Saved Timetables</h2>
+                    <p>
+                        Your generated timetables are stored here for easy access.
+                    </p>
+                </div>
+            </div>
+
+            <a
+                href="{{ url_for('create_project') }}"
+                class="btn btn-primary"
+            >
+                + Generate New
+            </a>
+
+        </div>
+
+
+        {% if saved_timetables %}
+
+            <div class="saved-timetable-list">
+
+                {% for timetable in saved_timetables %}
+
+                    <article class="saved-timetable-card">
+
+                        <div class="saved-icon">
+                            📅
+                        </div>
+
+                        <div class="saved-info">
+
+                            <h3>
+                                {{ timetable['project_name'] or 'Untitled Timetable' }}
+                            </h3>
+
+                            <p>
+                                {{ timetable['class_name'] or 'Class not specified' }}
+                                {% if timetable['semester'] %}
+                                    · {{ timetable['semester'] }}
+                                {% endif %}
+                            </p>
+
+                            <div class="saved-meta">
+
+                                {% if timetable['academic_year'] %}
+                                    <span>
+                                        🎓 {{ timetable['academic_year'] }}
+                                    </span>
+                                {% endif %}
+
+                                {% if timetable['working_days'] %}
+                                    <span>
+                                        📆 {{ timetable['working_days'] }}
+                                    </span>
+                                {% endif %}
+
+                                {% if timetable['periods_per_day'] %}
+                                    <span>
+                                        🕒 {{ timetable['periods_per_day'] }} periods/day
+                                    </span>
+                                {% endif %}
+
+                                {% if timetable['created_at'] %}
+                                    <span>
+                                        🗓 {{ timetable['created_at'] }}
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                        <div class="saved-actions">
+
+                            <a
+                                href="{{ url_for(
+                                    'view_saved_timetable',
+                                    timetable_id=timetable['id']
+                                ) }}"
+                                class="btn btn-primary btn-small"
+                            >
+                                View
+                            </a>
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-small delete-saved-button"
+                                data-delete-url="{{ url_for(
+                                    'delete_saved_timetable',
+                                    timetable_id=timetable['id']
+                                ) }}"
+                                data-timetable-name="{{ timetable['project_name'] or 'Untitled Timetable' }}"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="card-icon" style="margin:auto;">
+                    📅
+                </div>
+
+                <h2>No Saved Timetables Yet</h2>
+
+                <p>
+                    Your saved timetables will appear here after you generate
+                    and save your first timetable.
+                </p>
+
+                <div class="button-row" style="justify-content:center;">
+
+                    <a
+                        href="{{ url_for('create_project') }}"
+                        class="btn btn-primary"
+                    >
+                        + Create Your First Timetable
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+
+<!-- =========================================================
+     DELETE POPUP
+========================================================= -->
+
+<div
+    class="popup-overlay"
+    id="deleteSavedPopup"
+    role="dialog"
+    aria-modal="true"
+>
+
+    <div class="popup">
+
+        <div class="popup-head">
+
+            <div class="card-icon"
+                 style="background:#fff0f2;color:#d83d50;">
+                🗑️
+            </div>
+
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closeSavedDeletePopup()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <h2 style="margin-top:18px;">
+            Delete Saved Timetable?
+        </h2>
+
+        <p>
+            Are you sure you want to delete
+            <strong id="savedDeleteName">this timetable</strong>?
+            This action cannot be undone.
+        </p>
+
+        <div class="button-row form-navigation">
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeSavedDeletePopup()"
+            >
+                Cancel
+            </button>
+
+            <a
+                href="#"
+                id="savedDeleteConfirm"
+                class="btn btn-danger"
+            >
+                Yes, Delete
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const savedDeletePopup =
+    document.getElementById("deleteSavedPopup");
+
+const savedDeleteName =
+    document.getElementById("savedDeleteName");
+
+const savedDeleteConfirm =
+    document.getElementById("savedDeleteConfirm");
+
+document.querySelectorAll(".delete-saved-button")
+    .forEach(button => {
+
+        button.addEventListener("click", function() {
+
+            savedDeleteConfirm.href =
+                this.dataset.deleteUrl;
+
+            savedDeleteName.textContent =
+                this.dataset.timetableName || "this timetable";
+
+            savedDeletePopup.classList.add("open");
+            document.body.style.overflow = "hidden";
+        });
+    });
+
+function closeSavedDeletePopup() {
+    savedDeletePopup.classList.remove("open");
+    document.body.style.overflow = "";
+}
+
+savedDeletePopup.addEventListener("click", function(event) {
+    if (event.target === savedDeletePopup) {
+        closeSavedDeletePopup();
+    }
+});
+
+document.addEventListener("keydown", function(event) {
+    if (
+        event.key === "Escape" &&
+        savedDeletePopup.classList.contains("open")
+    ) {
+        closeSavedDeletePopup();
+    }
+});
+
+</script>
+
+{% endblock %}
