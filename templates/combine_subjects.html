@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Combine Subjects | SmartClass{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-hero">
+    <div class="page-step">STEP 04</div>
+    <h1>Combine Subjects</h1>
+    <p>Choose which subjects and divisions should share a lecture time. Day and period are flexible.</p>
+  </div>
+
+  <form method="POST" id="combineForm">
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title"><div class="card-icon">⇄</div><div><h2>Combined Subjects</h2><p>Add as many combined-subject preferences as needed.</p></div></div></div>
+      <div id="rulesContainer"></div>
+      <button type="button" class="btn btn-secondary" id="addRuleBtn">＋ Add combined-subject rule</button>
+      <p style="color:var(--text-muted,#666);margin-top:14px;line-height:1.6">Add a rule for each subject you want to combine, such as Hindi / Marathi or Cultural Studies. Select at least two divisions that should attend that lecture at the same time, then choose whether they share a teacher or have different teachers. Your preferences are saved with this project.</p>
+    </div>
+    <div class="card"><div class="button-row form-navigation">
+      <a href="{{ url_for('subjects') }}" class="btn btn-secondary">← Back</a>
+      <button type="submit" class="btn btn-primary">Save &amp; Continue →</button>
+    </div></div>
+  </form>
+</div>
+<template id="ruleTemplate">
+  <div class="summary-card combine-rule" style="margin-bottom:16px;padding:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px"><strong>Combined-subject rule</strong><button type="button" class="btn btn-secondary btn-small remove-rule">Remove</button></div>
+    <div class="grid grid-2">
+      <div class="form-group"><label>Subject</label><select class="rule-subject" required></select></div>
+      <div class="form-group"><label>Teacher arrangement</label><select class="rule-mode"><option value="same">Same teacher for both divisions</option><option value="different">Different teachers</option></select></div>
+    </div>
+    <div class="form-group"><label>Divisions to combine (select 2 or more)</label><div class="rule-divisions grid grid-3"></div></div>
+  </div>
+</template>
+{% endblock %}
+{% block scripts %}
+<script>
+const subjectOptions = {{ subject_options|tojson }};
+const allDivisions = {{ divisions|tojson }};
+const savedRules = {{ combine_settings.get('rules', [])|tojson }};
+const container = document.getElementById('rulesContainer');
+function addRule(saved={}) {
+  const fragment = document.getElementById('ruleTemplate').content.cloneNode(true);
+  const card = fragment.querySelector('.combine-rule');
+  const index = container.querySelectorAll('.combine-rule').length;
+  const subject = card.querySelector('.rule-subject');
+  subject.name = 'rule_subject[]';
+  subject.innerHTML = '<option value="">Select subject</option>' + subjectOptions.map(s => `<option value="${escapeHtml(s.key)}">${escapeHtml(s.label)}</option>`).join('');
+  subject.value = saved.subject_key || '';
+  const mode = card.querySelector('.rule-mode'); mode.name = `teacher_mode_${index}`; mode.value = saved.teacher_mode || 'same';
+  const divBox = card.querySelector('.rule-divisions');
+  allDivisions.forEach(d => {
+    const checked = (saved.divisions || []).includes(d.id) ? 'checked' : '';
+    const label = document.createElement('label'); label.style.cssText='display:flex;gap:7px;align-items:center;margin:6px 0';
+    label.innerHTML = `<input type="checkbox" name="rule_divisions_${index}[]" value="${escapeHtml(d.id)}" ${checked}> ${escapeHtml(d.id)}`;
+    divBox.appendChild(label);
+  });
+  card.querySelector('.remove-rule').addEventListener('click', () => { card.remove(); reindexRules(); });
+  container.appendChild(card);
+}
+function reindexRules() {
+  container.querySelectorAll('.combine-rule').forEach((card, i) => {
+    card.querySelector('.rule-mode').name = `teacher_mode_${i}`;
+    card.querySelectorAll('.rule-divisions input').forEach(input => input.name = `rule_divisions_${i}[]`);
+  });
+}
+function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+document.getElementById('addRuleBtn').addEventListener('click', () => addRule());
+savedRules.forEach(rule => addRule(rule));
+</script>
+{% endblock %}

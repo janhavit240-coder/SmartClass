@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Project | SmartClass
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container"><!-- Page Header -->
+<div class="page-hero">
+
+    <div class="page-step">
+        STEP 01 
+    </div>
+
+    <h1>
+        Create Project
+    </h1>
+
+    <p>
+        Start your SmartClass timetable project by entering your academic details.
+    </p>
+
+</div>
+
+
+<!-- Project Form -->
+<div class="card">
+
+    <div class="card-header">
+
+        <div class="card-title">
+
+            <div class="card-icon">
+                📋
+            </div>
+
+            <div>
+                <h2>Project Details</h2>
+
+                <p>
+                    Enter the basic information for your timetable.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <form method="POST"
+          action="{{ url_for('create_project') }}">
+
+
+        <!-- Project Name -->
+        <div class="form-group">
+
+            <label>
+                Project Name
+            </label>
+
+            <input
+                type="text"
+                name="project_name"
+                placeholder="Example: BSc IT Timetable"
+                required>
+
+        </div>
+
+
+        <!-- Academic Year -->
+        <div class="form-group">
+
+            <label>
+                Academic Year
+            </label>
+
+            <input
+                type="text"
+                name="academic_year"
+                placeholder="Example: 2026-27">
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="button-row form-navigation">
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="btn btn-secondary">
+
+                ← Cancel
+
+            </a>
+
+
+            <button
+                type="submit"
+                class="btn btn-primary">
+
+                Save &amp; Continue →
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+</div>
+
+{% endblock %}

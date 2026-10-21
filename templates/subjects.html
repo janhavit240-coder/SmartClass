@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects & Teachers | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-hero">
+        <div class="page-step">STEP 03</div>
+        <h1>Subjects & Teachers</h1>
+        <p>
+            Add subjects class-wise. The same teacher can teach multiple
+            classes, and SmartClass will prevent global teacher clashes.
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('subjects') }}" id="subjectsForm">
+
+        {% for class_data in classes %}
+
+            {% set class_ns = namespace(rows=[]) %}
+            {% for subject in subjects %}
+                {% if subject.get('class_name') == class_data.class_name %}
+                    {% set class_ns.rows = class_ns.rows + [subject] %}
+                {% endif %}
+            {% endfor %}
+
+            <div class="card class-subject-card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+                        <div class="card-icon">🎓</div>
+                        <div>
+                            <h2>{{ class_data.class_name }}</h2>
+                            <p>
+                                Divisions:
+                                {{ class_data.divisions|join(', ') }}
+                                • Enter subjects for this class only.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="addSubjectRow(this)"
+                    >
+                        ＋ Add Subject
+                    </button>
+
+                </div>
+
+                <div class="timetable-wrapper">
+
+                    <table class="subject-table">
+
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Teacher</th>
+                                <th>Theory / Week</th>
+                                <th>Practical / Week</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="subject-table-body">
+
+                            {% if class_ns.rows %}
+
+                                {% for subject in class_ns.rows %}
+
+                                    <tr class="subject-row">
+
+                                        <td>
+                                            <input
+                                                type="hidden"
+                                                name="class_name[]"
+                                                value="{{ class_data.class_name }}"
+                                            >
+                                            <input
+                                                type="text"
+                                                name="subject_name[]"
+                                                value="{{ subject.get('subject_name','') }}"
+                                                placeholder="Subject name"
+                                                required
+                                            >
+                                        </td>
+
+                                        <td>
+                                            <input
+                                                type="text"
+                                                name="teacher_name[]"
+                                                value="{{ subject.get('teacher_name','') }}"
+                                                placeholder="Teacher name"
+                                                required
+                                            >
+                                        </td>
+
+                                        <td>
+                                            <input
+                                                type="number"
+                                                name="theory_count[]"
+                                                min="0"
+                                                value="{{ subject.get('theory',0) }}"
+                                                required
+                                            >
+                                        </td>
+
+                                        <td>
+                                            <input
+                                                type="number"
+                                                name="practical_count[]"
+                                                min="0"
+                                                value="{{ subject.get('practical',0) }}"
+                                                required
+                                            >
+                                        </td>
+
+                                        <td>
+                                            <button
+                                                type="button"
+                                                class="remove-btn"
+                                                onclick="removeSubjectRow(this)"
+                                            >
+                                                ✕ Remove
+                                            </button>
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <tr class="subject-row">
+
+                                    <input
+                                        type="hidden"
+                                        name="class_name[]"
+                                        value="{{ class_data.class_name }}"
+                                    >
+
+                                    <td>
+                                        <input
+                                            type="hidden"
+                                            name="class_name[]"
+                                            value="{{ class_data.class_name }}"
+                                        >
+                                        <input
+                                            type="text"
+                                            name="subject_name[]"
+                                            placeholder="Subject name"
+                                            required
+                                        >
+                                    </td>
+
+                                    <td>
+                                        <input
+                                            type="text"
+                                            name="teacher_name[]"
+                                            placeholder="Teacher name"
+                                            required
+                                        >
+                                    </td>
+
+                                    <td>
+                                        <input
+                                            type="number"
+                                            name="theory_count[]"
+                                            min="0"
+                                            value="0"
+                                            required
+                                        >
+                                    </td>
+
+                                    <td>
+                                        <input
+                                            type="number"
+                                            name="practical_count[]"
+                                            min="0"
+                                            value="0"
+                                            required
+                                        >
+                                    </td>
+
+                                    <td>
+                                        <button
+                                            type="button"
+                                            class="remove-btn"
+                                            onclick="removeSubjectRow(this)"
+                                        >
+                                            ✕ Remove
+                                        </button>
+                                    </td>
+
+                                </tr>
+
+                            {% endif %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="info-box">
+                    <strong>💡 Important:</strong>
+                    A teacher can be used for FY + SY + TY. SmartClass checks
+                    the teacher globally while generating the timetable.
+                    <br>
+                    <span>
+                        Practical / Week means the number of practical
+                        sessions; each practical session occupies 2 consecutive periods.
+                    </span>
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+        <div class="card">
+            <div class="button-row form-navigation">
+
+                <a
+                    href="{{ url_for('class_details') }}"
+                    class="btn btn-secondary"
+                >
+                    ← Back
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Save &amp; Continue →
+                </button>
+
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+function addSubjectRow(button) {
+
+    const card = button.closest(".class-subject-card");
+    const tableBody = card.querySelector(".subject-table-body");
+    const className = card.querySelector(
+        'input[name="class_name[]"]'
+    ).value;
+
+    const row = document.createElement("tr");
+    row.className = "subject-row";
+
+    row.innerHTML = `
+        <td>
+            <input
+                type="hidden"
+                name="class_name[]"
+                value="${escapeHtml(className)}"
+            >
+            <input
+                type="text"
+                name="subject_name[]"
+                placeholder="Subject name"
+                required
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                name="teacher_name[]"
+                placeholder="Teacher name"
+                required
+            >
+        </td>
+
+        <td>
+            <input
+                type="number"
+                name="theory_count[]"
+                min="0"
+                value="0"
+                required
+            >
+        </td>
+
+        <td>
+            <input
+                type="number"
+                name="practical_count[]"
+                min="0"
+                value="0"
+                required
+            >
+        </td>
+
+        <td>
+            <button
+                type="button"
+                class="remove-btn"
+                onclick="removeSubjectRow(this)"
+            >
+                ✕ Remove
+            </button>
+        </td>
+    `;
+
+    tableBody.appendChild(row);
+
+    row.querySelector(
+        'input[name="subject_name[]"]'
+    ).focus();
+}
+
+function removeSubjectRow(button) {
+
+    const card = button.closest(".class-subject-card");
+    const rows = card.querySelectorAll(".subject-row");
+
+    if (rows.length <= 1) {
+
+        openPopup(
+            "Subject Required",
+            "Keep at least one subject row in this class.",
+            `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+        );
+
+        return;
+    }
+
+    button.closest(".subject-row").remove();
+}
+
+function escapeHtml(value) {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+document.getElementById("subjectsForm").addEventListener(
+    "submit",
+    function(event) {
+
+        const rows = document.querySelectorAll(".subject-row");
+
+        if (!rows.length) {
+            event.preventDefault();
+
+            openPopup(
+                "Subjects Required",
+                "Please add at least one subject.",
+                `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+            );
+
+            return;
+        }
+
+        let hasError = false;
+
+        rows.forEach(row => {
+
+            const subject = row.querySelector(
+                'input[name="subject_name[]"]'
+            );
+
+            const teacher = row.querySelector(
+                'input[name="teacher_name[]"]'
+            );
+
+            const theory = row.querySelector(
+                'input[name="theory_count[]"]'
+            );
+
+            const practical = row.querySelector(
+                'input[name="practical_count[]"]'
+            );
+
+            const theoryValue = Number(theory.value || 0);
+            const practicalValue = Number(practical.value || 0);
+
+            if (!subject.value.trim()) {
+                subject.focus();
+                hasError = true;
+                return;
+            }
+
+            if (!teacher.value.trim()) {
+                teacher.focus();
+                hasError = true;
+                return;
+            }
+
+            if (
+                theoryValue < 0 ||
+                practicalValue < 0 ||
+                (theoryValue === 0 && practicalValue === 0)
+            ) {
+                theory.focus();
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            event.preventDefault();
+
+            openPopup(
+                "Check Subject Details",
+                "Every subject needs a teacher and at least one theory or practical lecture.",
+                `<button class="btn btn-primary" style="width:100%" onclick="closePopup()">OK</button>`
+            );
+        }
+    }
+);
+
+</script>
+
+{% endblock %}

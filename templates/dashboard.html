@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SmartClass{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+
+    <div class="page-step">SMARTCLASS • YOUR PLANNING SPACE</div>
+
+    <h1>
+        Welcome, {{ session.get('user_name','Creator') }} ✨
+    </h1>
+
+    <p>
+        Turn classes, teachers and lecture requirements into a clean
+        academic timetable with SmartClass.
+    </p>
+
+    <div class="button-row">
+
+        <a
+            href="{{ url_for('create_project') }}"
+            class="btn btn-primary"
+        >
+            ＋ Create Timetable
+        </a>
+
+        <a
+            href="{{ url_for('saved_timetables') }}"
+            class="btn btn-secondary"
+        >
+            ♡ Saved Timetables
+        </a>
+
+        {% if project and project.get('project_name') %}
+            <a
+                href="{{ url_for('result') }}"
+                class="btn btn-secondary"
+            >
+                ▤ View Current
+            </a>
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="grid grid-4">
+
+    <div class="summary-card">
+        <div class="summary-label">📁 Current Project</div>
+        <div class="summary-value">
+            {{ 1 if project and project.get('project_name') else 0 }}
+        </div>
+        <div class="form-help">Active workspace</div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-label">🎓 Classes</div>
+        <div class="summary-value">
+            {{ project.get('classes_count', 0) if project else 0 }}
+        </div>
+        <div class="form-help">Courses / classes</div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-label">👥 Divisions</div>
+        <div class="summary-value">
+            {{ project.get('divisions_count', 0) if project else 0 }}
+        </div>
+        <div class="form-help">Class groups</div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-label">💾 Saved</div>
+        <div class="summary-value">
+            {{ saved|length }}
+        </div>
+        <div class="form-help">Recent timetables</div>
+    </div>
+
+</div>
+
+
+{% if project and project.get('project_name') %}
+
+    <div class="grid grid-2" style="margin-top:20px">
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+                    <div class="card-icon">📋</div>
+
+                    <div>
+                        <h2>Current Project</h2>
+                        <p>Your active timetable workspace.</p>
+                    </div>
+                </div>
+
+                <span class="badge badge-green">
+                    ● Active
+                </span>
+
+            </div>
+
+            <div class="info-box">
+                <strong>
+                    {{ project.get('project_name','SmartClass Project') }}
+                </strong>
+                <br>
+
+                <span>
+                    {{ project.get('academic_year','') }}
+                    {% if project.get('semester') %}
+                        • {{ project.get('semester') }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="button-row">
+
+                <a
+                    href="{{ url_for('class_details') }}"
+                    class="btn btn-secondary"
+                >
+                    🎓 Classes
+                </a>
+
+                <a
+                    href="{{ url_for('subjects') }}"
+                    class="btn btn-secondary"
+                >
+                    📚 Subjects
+                </a>
+
+                <a
+                    href="{{ url_for('settings') }}"
+                    class="btn btn-secondary"
+                >
+                    ⚙ Settings
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+                    <div class="card-icon">✦</div>
+
+                    <div>
+                        <h2>Quick Generate</h2>
+                        <p>
+                            Create a fresh clash-free timetable.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="empty-state" style="padding:12px 5px 4px">
+
+                <p>
+                    SmartClass will apply teacher clashes,
+                    availability, practical and free-period rules.
+                </p>
+
+                <a
+                    href="{{ url_for('generate') }}"
+                    class="btn btn-primary"
+                >
+                    Generate Now →
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card" style="margin-top:20px">
+
+        <div class="card-header">
+
+            <div class="card-title">
+                <div class="card-icon">🎓</div>
+
+                <div>
+                    <h2>Classes in Current Project</h2>
+                    <p>
+                        Class-wise divisions included in the project.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid grid-3">
+
+            {% for class_data in classes %}
+
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Class {{ loop.index }}
+                    </div>
+
+                    <div class="subject-name"
+                         style="margin-top:6px;">
+                        {{ class_data.class_name }}
+                    </div>
+
+                    <div style="margin-top:8px;">
+
+                        {% for division in class_data.divisions %}
+
+                            <span class="division-badge">
+                                {{ division }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+{% else %}
+
+    <div class="card">
+
+        <div class="empty-state">
+
+            <div class="card-icon" style="margin:auto;">
+                🚀
+            </div>
+
+            <h2>
+                Your workspace is empty
+            </h2>
+
+            <p>
+                Create your first SmartClass timetable project.
+            </p>
+
+            <a
+                href="{{ url_for('create_project') }}"
+                class="btn btn-primary"
+            >
+                ＋ Start SmartClass
+            </a>
+
+        </div>
+
+    </div>
+
+{% endif %}
+
+
+<div class="card" style="margin-top:20px">
+
+    <div class="card-header">
+
+        <div class="card-title">
+            <div class="card-icon">♡</div>
+
+            <div>
+                <h2>Recent Timetables</h2>
+                <p>Your latest saved schedules.</p>
+            </div>
+        </div>
+
+        <a
+            href="{{ url_for('saved_timetables') }}"
+            class="btn btn-secondary btn-small"
+        >
+            View all →
+        </a>
+
+    </div>
+
+
+    {% if saved %}
+
+        <div class="saved-timetable-list">
+
+            {% for t in saved %}
+
+                <div class="saved-timetable-card">
+
+                    <div class="saved-icon">
+                        📅
+                    </div>
+
+                    <div class="saved-info">
+
+                        <h3>
+                            {{ t['project_name'] or 'Saved Timetable' }}
+                        </h3>
+
+                        <p>
+                            {{ t['class_name'] or 'Class not specified' }}
+                        </p>
+
+                        <div class="saved-meta">
+
+                            {% if t['academic_year'] %}
+                                <span>
+                                    🎓 {{ t['academic_year'] }}
+                                </span>
+                            {% endif %}
+
+                            {% if t['semester'] %}
+                                <span>
+                                    {{ t['semester'] }}
+                                </span>
+                            {% endif %}
+
+                            <span>
+                                🕒 {{ t['created_at'] or '' }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="saved-actions">
+
+                        <a
+                            class="btn btn-primary btn-small"
+                            href="{{ url_for(
+                                'view_saved_timetable',
+                                timetable_id=t['id']
+                            ) }}"
+                        >
+                            View
+                        </a>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            <p>No saved timetable yet.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
