@@ -1,0 +1,266 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartClass</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background:
+                radial-gradient(
+                    circle at 50% 0%,
+                    rgba(124, 58, 237, 0.18),
+                    transparent 45%
+                ),
+                #0f0b18;
+            color: #ffffff;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(8, 5, 15, 0.72);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            z-index: 9999;
+        }
+
+        .popup {
+            position: relative;
+            width: 560px;
+            max-width: 100%;
+            padding: 54px 55px 40px;
+            border-radius: 28px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(31, 23, 48, 0.97),
+                    rgba(20, 15, 32, 0.98)
+                );
+            border: 1px solid rgba(139, 92, 246, 0.32);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.60),
+                0 0 45px rgba(124, 58, 237, 0.12);
+            text-align: center;
+            animation: popupShow 0.4s ease;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 22px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #c9bfd9;
+            font-size: 25px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .logo {
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 22px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #a78bfa,
+                    #8b5cf6,
+                    #6366f1
+                );
+            color: #ffffff;
+            font-size: 40px;
+            font-weight: 800;
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.30);
+        }
+
+        h1 {
+            margin: 0 0 18px;
+            font-size: 32px;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -0.7px;
+            color: #ffffff;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            margin: 0 auto 28px;
+            max-width: 430px;
+            color: #b9aecb;
+            font-size: 15px;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .start-btn {
+            width: 100%;
+            height: 58px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+            color: #ffffff;
+            font-family: "Inter", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(124, 58, 237, 0.28);
+            transition: 0.25s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #9b6cff, #8b5cf6);
+            box-shadow: 0 14px 35px rgba(124, 58, 237, 0.40);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .arrow {
+            margin-left: 7px;
+            font-size: 19px;
+            transition: 0.2s ease;
+        }
+
+        .start-btn:hover .arrow {
+            margin-left: 12px;
+        }
+
+        .bottom-text {
+            margin: 22px 0 0;
+            color: #756985;
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        @keyframes popupShow {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .popup {
+                padding: 42px 25px 32px;
+                border-radius: 24px;
+            }
+
+            .logo {
+                width: 72px;
+                height: 72px;
+                font-size: 35px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+
+            .description {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="overlay">
+        <div class="popup">
+
+            <button
+                type="button"
+                class="close-btn"
+                onclick="goToSmartClass()"
+                aria-label="Close">
+                ×
+            </button>
+
+            <div class="logo">S</div>
+
+            <h1>
+                Welcome to <span>SmartClass!</span>
+            </h1>
+
+            <p class="description">
+                Your smarter way to manage college timetables.
+                Create, organize, save and print your timetable with ease.
+            </p>
+
+            <button
+                type="button"
+                class="start-btn"
+                onclick="goToSmartClass()">
+                Get Started
+                <span class="arrow">→</span>
+            </button>
+
+            <p class="bottom-text">
+                Smart scheduling. Simple management.
+            </p>
+
+        </div>
+    </div>
+
+    <script>
+        // Updated SmartClass Render URL
+        const SMARTCLASS_URL = "https://smartclass-ejqk.onrender.com";
+
+        function goToSmartClass() {
+            window.location.assign(SMARTCLASS_URL + "/");
+        }
+    </script>
+
+</body>
+</html>
+```
